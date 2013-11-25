@@ -1,7 +1,10 @@
 CREATE OR REPLACE PACKAGE TOOLBOX
 AS
-    -- Constantes:
-   C_SCHEMA   VARCHAR (30) := 'DUMMY';
+    --v1.2
+	
+	-- Constantes:
+   C_SCHEMA   VARCHAR2 (30) := 'DUMMY';
+   C_LOG      VARCHAR2 (30) := 'ENABLED';
 
    --analisa os objectos do schema utilizado e retorna os invalidos
    PROCEDURE PRC_TB_REPORT_INVALIDOS;
