@@ -5,7 +5,7 @@ PROCEDURE PRC_TB_RB_INVALIDOS_BY_OBJ(
     TIPO    IN VARCHAR2)
 AS
 BEGIN
-  EXECUTE IMMEDIATE 'ALTER ' || TIPO || ' ' || c_schema || '.' || OBJECTO || ' COMPILE';
+  EXECUTE IMMEDIATE 'ALTER ' || TIPO || ' ' || C_SCHEMA || '.' || OBJECTO || ' COMPILE';
   DBMS_OUTPUT.put_line (OBJECTO || ' recuperado(a)');
 EXCEPTION
 WHEN OTHERS THEN
@@ -29,10 +29,10 @@ BEGIN
   (SELECT INDEX_NAME
   FROM all_indexes
   WHERE STATUS NOT IN ('VALID', 'N/A')
-  AND owner         = c_schema
+  AND owner         = C_SCHEMA
   )
   LOOP
-    EXECUTE IMMEDIATE 'ALTER INDEX ' || c_schema || '.' || rec.INDEX_NAME || ' REBUILD';
+    EXECUTE IMMEDIATE 'ALTER INDEX ' || C_SCHEMA || '.' || rec.INDEX_NAME || ' REBUILD';
     DBMS_OUTPUT.put_line (rec.INDEX_NAME || ' recuperado');
   END LOOP;
   FOR rec2 IN
@@ -40,14 +40,14 @@ BEGIN
     PARTITION_NAME
   FROM all_IND_PARTITIONS
   WHERE STATUS   <> 'USABLE'
-  AND index_owner = c_schema
+  AND index_owner = C_SCHEMA
   GROUP BY INDEX_NAME,
     PARTITION_NAME,
     STATUS,
     TABLESPACE_NAME
   )
   LOOP
-    EXECUTE IMMEDIATE 'ALTER INDEX ' || c_schema || '.' || rec2.INDEX_NAME || ' REBUILD PARTITION ' || rec2.PARTITION_NAME;
+    EXECUTE IMMEDIATE 'ALTER INDEX ' || C_SCHEMA || '.' || rec2.INDEX_NAME || ' REBUILD PARTITION ' || rec2.PARTITION_NAME;
     DBMS_OUTPUT.put_line (rec2.INDEX_NAME || ' @ ' || rec2.PARTITION_NAME || ' recuperado');
   END LOOP;
   FOR rec3 IN
@@ -55,7 +55,7 @@ BEGIN
     OBJECT_TYPE
   FROM all_OBJECTS
   WHERE STATUS <> 'VALID'
-  AND owner     = c_schema
+  AND owner     = C_SCHEMA
   ORDER BY OBJECT_TYPE,
     OBJECT_NAME
   )
@@ -91,7 +91,7 @@ BEGIN
     STATUS
   FROM all_objects
   WHERE STATUS <> 'VALID'
-  AND owner     = c_schema
+  AND owner     = C_SCHEMA
   ORDER BY OBJECT_TYPE,
     OBJECT_NAME
   )
@@ -109,12 +109,12 @@ BEGIN
   (SELECT INDEX_NAME
   FROM all_indexes
   WHERE STATUS NOT IN ('VALID', 'N/A')
-  AND owner         = c_schema
+  AND owner         = C_SCHEMA
   UNION
   SELECT DISTINCT INDEX_NAME
   FROM all_IND_PARTITIONS
   WHERE STATUS   <> 'USABLE'
-  AND index_owner = c_schema
+  AND index_owner = C_SCHEMA
   )
   LOOP
     DBMS_OUTPUT.put_line (rec2.INDEX_NAME || ' encontra-se inválido');
@@ -159,13 +159,13 @@ BEGIN
     OWNER
   FROM all_indexes
   WHERE STATUS NOT IN ('VALID', 'N/A')
-  AND owner         = c_schema
+  AND owner         = C_SCHEMA
   UNION
   SELECT DISTINCT INDEX_NAME,
     INDEX_OWNER
   FROM all_IND_PARTITIONS
   WHERE STATUS   <> 'USABLE'
-  AND index_owner = c_schema
+  AND index_owner = C_SCHEMA
   )
   LOOP
     DBMS_OUTPUT.put_line ( rec2.INDEX_NAME || ' do schema ' || rec2.OWNER || ' encontra-se inválido');
@@ -179,19 +179,21 @@ PROCEDURE PRC_TB_GATHER_STATS(
     ESTIMATE_PERCENT IN VARCHAR2)
 AS
 BEGIN
-  DBMS_STATS.gather_table_stats (ownname => c_schema, tabname => TABLE_NAME, partname => NULL, CASCADE => TRUE, degree => 4, ESTIMATE_PERCENT => ESTIMATE_PERCENT);
+  DBMS_STATS.gather_table_stats (ownname => C_SCHEMA, tabname => TABLE_NAME, partname => NULL, CASCADE => TRUE, degree => 4, ESTIMATE_PERCENT => ESTIMATE_PERCENT);
+  DBMS_OUTPUT.put_line (TABLE_NAME || ' analisada');
 EXCEPTION
 WHEN OTHERS THEN
-  DBMS_OUTPUT.put_line ('Erro ao calcular as estatisticas');
+  DBMS_OUTPUT.put_line ('Erro ao calcular as estatisticas para a tabela' || TABLE_NAME);
 END PRC_TB_GATHER_STATS;
 PROCEDURE PRC_TB_ANALYZE(
     TABLE_NAME IN VARCHAR2)
 AS
 BEGIN
-  EXECUTE immediate 'ANALYZE TABLE ' || c_schema||'.'||TABLE_NAME || ' estimate statistics sample 30 percent';
+  EXECUTE immediate 'ANALYZE TABLE ' || C_SCHEMA||'.'||TABLE_NAME || ' estimate statistics sample 30 percent';
+  DBMS_OUTPUT.put_line (TABLE_NAME || ' analisada');
 EXCEPTION
 WHEN OTHERS THEN
-  DBMS_OUTPUT.put_line ('Erro ao calcular as estatisticas');
+  DBMS_OUTPUT.put_line ('Erro ao calcular as estatisticas para a tabela' || TABLE_NAME);
 END PRC_TB_ANALYZE;
 PROCEDURE PRC_TB_ANALYZE_OLD(
     DIAS IN NUMBER)
@@ -212,14 +214,13 @@ BEGIN
   FOR REC IN
   (SELECT table_name
   FROM all_tables
-  WHERE owner                           = c_schema
+  WHERE owner                           = C_SCHEMA
   AND TO_CHAR(last_analyzed,'YYYYMMDD')<=TO_CHAR((SYSDATE-DIAS_V),'YYYYMMDD')
   AND PARTITIONED                       = 'NO'
   ORDER BY table_name
   )
   LOOP
-    PRC_TB_ANALYZE(REC.table_name);
-    DBMS_OUTPUT.put_line (REC.table_name || ' analisada');
+    PRC_TB_ANALYZE(REC.table_name);    
   END LOOP;
   DBMS_OUTPUT.put_line(' ');
   DBMS_OUTPUT.put_line ('=========================================');
@@ -228,14 +229,13 @@ BEGIN
   FOR REC2 IN
   (SELECT table_name
   FROM all_tables
-  WHERE owner                           = c_schema
+  WHERE owner                           = C_SCHEMA
   AND TO_CHAR(last_analyzed,'YYYYMMDD')<=TO_CHAR((SYSDATE-DIAS_V),'YYYYMMDD')
   AND PARTITIONED                       = 'YES'
   ORDER BY table_name
   )
   LOOP
     PRC_TB_GATHER_STATS(REC2.table_name, 30);
-    DBMS_OUTPUT.put_line (REC2.table_name || ' analisada');
   END LOOP;
   DBMS_OUTPUT.put_line(' ');
   DBMS_OUTPUT.put_line ('========================================================================================');
