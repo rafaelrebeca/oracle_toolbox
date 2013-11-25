@@ -36,8 +36,10 @@ END PRC_TB_RB_INVALIDOS_BY_OBJ;
 PROCEDURE PRC_TB_REBUILD_INVALIDOS
 AS
   VAR_TYPE VARCHAR2(100);
+  VAR_INDEX VARCHAR2(1);
 BEGIN
   VAR_TYPE := ' ';
+  VAR_INDEX := '0';
   -- recupera(rebuild) os indexes invalidos
   DBMS_OUTPUT.put_line (' ');
   DBMS_OUTPUT.put_line ('========================================================================================');
@@ -45,8 +47,6 @@ BEGIN
   DBMS_OUTPUT.put_line ('=========================================');
   DBMS_OUTPUT.put_line ('=======        Recuperação        =======');
   DBMS_OUTPUT.put_line ('=========================================');
-  DBMS_OUTPUT.put_line(' ');
-  DBMS_OUTPUT.put_line ('=======>INDEX');
   FOR rec IN
   (SELECT INDEX_NAME
   FROM all_indexes
@@ -54,6 +54,11 @@ BEGIN
   AND owner         = C_SCHEMA
   )
   LOOP
+	IF(VAR_INDEX = '0') THEN
+		DBMS_OUTPUT.put_line(' ');
+		DBMS_OUTPUT.put_line ('=======>INDEX');
+		VAR_INDEX := '1';
+	END IF;
     EXECUTE IMMEDIATE 'ALTER INDEX ' || C_SCHEMA || '.' || rec.INDEX_NAME || ' REBUILD';
     DBMS_OUTPUT.put_line (rec.INDEX_NAME || ' recuperado');
   END LOOP;
@@ -99,8 +104,10 @@ END PRC_TB_REBUILD_INVALIDOS;
 PROCEDURE PRC_TB_REPORT_INVALIDOS
 AS
   VAR_TYPE VARCHAR2(100);
+  VAR_INDEX VARCHAR2(1);
 BEGIN
   VAR_TYPE := ' ';
+  VAR_INDEX := '0';
   DBMS_OUTPUT.put_line (' ');
   DBMS_OUTPUT.put_line ('========================================================================================');
   DBMS_OUTPUT.put_line(' ');
@@ -125,8 +132,6 @@ BEGIN
     END IF;
     DBMS_OUTPUT.put_line ( rec.OBJECT_NAME || ' encontra-se ' || rec.STATUS);
   END LOOP;
-  DBMS_OUTPUT.put_line (' ');
-  DBMS_OUTPUT.put_line ('=======>INDEX');
   FOR rec2 IN
   (SELECT INDEX_NAME
   FROM all_indexes
@@ -139,6 +144,11 @@ BEGIN
   AND index_owner = C_SCHEMA
   )
   LOOP
+	IF(VAR_INDEX = '0') THEN
+		DBMS_OUTPUT.put_line(' ');
+		DBMS_OUTPUT.put_line ('=======>INDEX');
+		VAR_INDEX := '1';
+	END IF;
     DBMS_OUTPUT.put_line (rec2.INDEX_NAME || ' encontra-se inválido');
   END LOOP;
   DBMS_OUTPUT.put_line (' ');
@@ -148,8 +158,10 @@ END PRC_TB_REPORT_INVALIDOS;
 PROCEDURE PRC_TB_FULL_REPORT
 AS
   VAR_TYPE VARCHAR2(100);
+  VAR_INDEX VARCHAR2(1);
 BEGIN
   VAR_TYPE := ' ';
+  VAR_INDEX := '0';
   DBMS_OUTPUT.put_line (' ');
   DBMS_OUTPUT.put_line ('========================================================================================');
   DBMS_OUTPUT.put_line(' ');
@@ -174,8 +186,6 @@ BEGIN
     END IF;
     DBMS_OUTPUT.put_line ( rec.OBJECT_NAME || ' pertecente ao schema ' || rec.OWNER || ' encontra-se ' || rec.STATUS);
   END LOOP;
-  DBMS_OUTPUT.put_line (' ');
-  DBMS_OUTPUT.put_line ('=======>INDEX');
   FOR rec2 IN
   (SELECT INDEX_NAME,
     OWNER
@@ -190,6 +200,11 @@ BEGIN
   AND index_owner = C_SCHEMA
   )
   LOOP
+	IF(VAR_INDEX = '0') THEN
+		DBMS_OUTPUT.put_line(' ');
+		DBMS_OUTPUT.put_line ('=======>INDEX');
+		VAR_INDEX := '1';
+	END IF;
     DBMS_OUTPUT.put_line ( rec2.INDEX_NAME || ' do schema ' || rec2.OWNER || ' encontra-se inválido');
   END LOOP;
   DBMS_OUTPUT.put_line(' ');
